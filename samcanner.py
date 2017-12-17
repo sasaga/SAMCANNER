@@ -8,6 +8,8 @@ import platform
 import os
 from time import time
 from multiprocessing.pool import Pool
+from commands import getoutput
+
 
 common_ports = {
 	5: 'Remote Job Entry',
@@ -81,6 +83,7 @@ common_ports = {
 	177: 'X Display Manager Control Protocol (XDMCP)',
 	179: 'BGP (Border Gateway Protocol)',
 	194: 'IRC (Internet Relay Chat)',
+	199: 'smux',
 	201: 'AppleTalk Routing Maintenance',
 	209: 'The Quick Mail Transfer Protocol',
 	213: 'IPX',
@@ -163,7 +166,7 @@ common_ports = {
 	652: 'DTCP, Dynamic Tunnel Configuration Protocol',
 	654: 'AODV (Ad-hoc On-demand Distance Vector)',
 	655: 'IEEE MMS (IEEE Media Management System)[13][14]',
-	657: 'IBM RMC (Remote monitoring and Control) protocol, used by System p5 AIX Integrated Virtualization Manager (IVM)[15] and Hardware Management Console to connect managed logical partitions (LPAR)to enable dynamic partition reconfiguration',
+	657: 'IBM RMC (Remote monitoring and Control) protocol, used by System p5 AIX Integrated Virtualization Manager (IBM)',
 	660: 'Mac OS X Server administration',
 	665: 'sun-dr, Remote Dynamic Reconfiguration',
 	666: 'Doom, first online first-person shooter',
@@ -212,6 +215,7 @@ common_ports = {
 	902: 'VMware Server Console (UDP from server being managed to management console)',
 	904: 'VMware Server Alternate (if 902 is in use, i.e. SUSE linux)',
 	911: 'Network Console on Acid (NCA)—local tty redirection over OpenSSH',
+	912: 'apex-mesh',
 	953: 'Domain Name System (DNS) RDNC Service',
 	981: 'SofaWare Technologies Remote HTTPS management for firewall devices running embedded Check PointFireWall-1 software',
 	989: 'FTPS Protocol (data): FTP over TLS/SSL',
@@ -228,6 +232,9 @@ common_ports = {
 	1029: 'Often utilized by Microsoft DCOM services',
 	1058: 'nim, IBM AIX Network Installation Manager (NIM)',
 	1059: 'nimreg, IBM AIX Network Installation Manager(NIM)',
+	1072: 'cardax',
+	1077: 'imgames',
+	1078: 'avocent-proxy',
 	1080: 'SOCKS proxy',
 	1085: 'WebObjects',
 	1098: 'rmiactivation, RMI Activation',
@@ -256,6 +263,7 @@ common_ports = {
 	1293: 'IPSec (Internet Protocol Security)',
 	1311: 'Dell Open Manage HTTPS',
 	1313: 'Xbiim (Canvii server)',
+	1334: 'writesrv',
 	1337: 'PowerFolder P2P Encrypted File Synchronization Program',
 	1337: 'WASTE Encrypted File Sharing Program',
 	1352: 'IBM Lotus Notes/Domino Remote Procedure Call(RPC) protocol',
@@ -278,6 +286,7 @@ common_ports = {
 	1524: 'ingreslock, ingres',
 	1526: 'Oracle database common alternative for listener',
 	1533: 'IBM Sametime IM—Virtual Places Chat Microsoft SQL Server',
+	1542: 'gridgen-elmd',
 	1547: 'Laplink',
 	1550: 'Gadu-Gadu (direct client-to-client)',
 	1581: 'MIL STD 2045-47001 VMF',
@@ -288,12 +297,14 @@ common_ports = {
 	1677: 'Novell GroupWise clients in client/server access mode',
 	1701: 'Layer 2 Forwarding Protocol (L2F) & Layer 2 Tunneling Protocol (L2TP)',
 	1716: 'America’s Army Massively multiplayer online role-playing game (MMORPG)',
+	1720: 'h323hostcall',
 	1723: 'Microsoft Point-to-Point Tunneling Protocol (PPTP)',
 	1725: 'Valve Steam Client',
 	1755: 'Microsoft Media Services (MMS, ms-streaming)',
 	1761: 'cft-0',
 	1761: 'Novell Zenworks Remote Control utility',
 	1762: 'cft-1 to cft-7',
+	1801: 'msmq',
 	1812: 'radius, RADIUS authentication protocol',
 	1813: 'radacct, RADIUS accounting protocol',
 	1863: 'MSNP (Microsoft Notification Protocol), used by the .NET Messenger Service and a number of Instant Messaging clients',
@@ -337,6 +348,7 @@ common_ports = {
 	2105: 'IBM MiniPay',
 	2105: 'eklogin Kerberos encrypted remote login (rlogin)',
 	2105: 'zephyr-hm-srv Project Athena Zephyr Notification Service hm-serv connection (should use port 2102)',
+	2107: 'msmq-mgmt',
 	2144: 'Iron Mountain LiveVault Agent',
 	2145: 'Iron Mountain LiveVault Agent',
 	2161: 'APC Agent',
@@ -446,6 +458,7 @@ common_ports = {
 	4125: 'Microsoft Remote Web Workplace administration',
 	4226: 'Aleph One (game)',
 	4224: 'Cisco CDP Cisco discovery Protocol',
+	4353: 'f5-iquery',
 	4500: 'IPSec NAT Traversal (RFC 3947)',
 	4534: 'Armagetron Advanced default server port',
 	4569: 'Inter-Asterisk eXchange',
@@ -495,6 +508,7 @@ common_ports = {
 	5351: 'NAT Port Mapping Protocol—client-requested configuration for inbound connections through network address translators',
 	5353: 'Multicast DNS (MDNS)',
 	5355: 'LLMNR—Link-Local Multicast Name Resolution, allows hosts to perform name resolution for hosts on the same local link (only provided by Windows Vistaand Server 2008)',
+	5357: 'wsdapi',
 	5402: 'mftp, Stratacache OmniCast content delivery system MFTP file sharing protocol',
 	5405: 'NetSupport',
 	5421: 'Net Support 2',
@@ -505,9 +519,13 @@ common_ports = {
 	5499: 'Hotline tracker server discovery',
 	5500: 'VNC remote desktop protocol—for incoming listening viewer, Hotline control connection',
 	5501: 'Hotline file transfer connection',
+	5504: 'fcp-cics-gw1',
 	5517: 'Setiqueue Proxy server client for SETI@Homeproject',
 	5555: 'Freeciv versions up to 2.0, Hewlett Packard Data Protector, SAP',
 	5556: 'Freeciv',
+	5560: 'isqlplus',
+	5584: 'bis-web',
+	5586: 'att-mt-sms',
 	5631: 'pcANYWHEREdata, Symantec pcAnywhere (version 7.52 and later[32])[33] data',
 	5632: 'pcANYWHEREstat, Symantec pcAnywhere (version 7.52 and later) status',
 	5666: 'NRPE (Nagios)',
@@ -520,6 +538,7 @@ common_ports = {
 	5900: 'Virtual Network Computing (VNC) remote desktop protocol (used by Apple Remote Desktop and others)',
 	5938: 'TeamViewer[34] remote desktop protocol',
 	5984: 'CouchDB database server',
+	5985: 'wsman',
 	5999: 'CVSup [35] file update tool',
 	6000: 'X11—used between an X client and server over the network',
 	6001: 'X11—used between an X client and server over the network',
@@ -528,6 +547,7 @@ common_ports = {
 	6050: 'Brightstor Arcserve Backup',
 	6050: 'Nortel Software',
 	6051: 'Brightstor Arcserve Backup',
+	6055: 'X11',
 	6072: 'iOperator Protocol Signal Port',
 	6086: 'PDTP—FTP like file server in a P2P network',
 	6100: 'Vizrt System',
@@ -577,6 +597,7 @@ common_ports = {
 	7002: 'Default for BEA WebLogic Server‘s HTTPS server, though often changed during installation',
 	7005: 'Default for BMC Software CONTROL-M/Server and CONTROL-M/Agent for Agent-to-Server, though often changed during installation',
 	7006: 'Default for BMC Software CONTROL-M/Server and CONTROL-M/Agent for Server-to-Agent, though often changed during installation',
+	7009: 'afs3-rmtsys',
 	7010: 'Default for Cisco AON AMC (AON Management Console) [2]',
 	7025: 'Zimbra LMTP [mailbox]—local mail delivery',
 	7047: 'Zimbra conversion server',
@@ -591,8 +612,11 @@ common_ports = {
 	7670: 'BrettspielWelt BSW Boardgame Portal',
 	7777: 'iChat server file transfer proxy',
 	7777: 'Default used by Windows backdoor program tini.exe',
+	7680: 'pando-pub',
 	7831: 'Default used by Smartlaunch Internet Cafe Administration[37] software',
 	7915: 'Default for YSFlight server [3]',
+	7937: 'nsrexecd',
+	7938: 'lgtomapper',
 	8000: 'iRDMI (Intel Remote Desktop Management Interface)[38]—sometimes erroneously used instead of port 8080',
 	8000: 'Commonly used for internet radio streams such as those using SHOUTcast',
 	8002: 'Cisco Systems Unified Call Manager Intercluster',
@@ -632,6 +656,7 @@ common_ports = {
 	8701: 'SoftPerfect Bandwidth Manager',
 	8702: 'SoftPerfect Bandwidth Manager',
 	8767: 'TeamSpeak—default',
+	8834: 'nessus-xmlrpc',
 	8880: 'cddbp-alt, CD DataBase (CDDB) protocol (CDDBP) alternate',
 	8880: 'cddbp-alt, CD DataBase (CDDB) protocol (CDDBP) alternate',
 	8880: 'WebSphere Application Server SOAP connector default',
@@ -650,6 +675,7 @@ common_ports = {
 	9001: 'cisco-xremote router configuration',
 	9001: 'Tor network default',
 	9001: 'DBGp Proxy',
+	9002: 'dynamid',
 	9009: 'Pichat Server—Peer to peer chat software',
 	9030: 'Tor often used',
 	9043: 'WebSphere Application Server Administration Console secure',
@@ -812,6 +838,27 @@ common_ports = {
 
 service = ""
 
+def enum_os(target):
+	global dominio
+	global sistema_operativo
+	global servidor
+	#Uses null session as opposed to username and password
+	cmd = "smbclient //%s/IPC$ -U %s%%%s -t 1 -c exit" % (target, '', '')
+	for line in getoutput(cmd).splitlines():
+		if "Domain=" in line:
+			result = line.split('] ')
+			dominio = script_colors("c",result[0] +"]")
+			sistema_operativo = script_colors("c",result[1] +"]")
+			servidor = script_colors("c",result[2])
+		elif "NT_STATUS_LOGON_FAILURE" in line:
+			print script_colors("red","Authentication Failed")
+		else:
+			dominio = script_colors("c","Not found")
+			sistema_operativo = script_colors("c","Not found")
+			servidor = script_colors("c","Not found")
+
+
+
 def check_host_online(direccion):
     if (platform.system()=="Windows"):
         ping = "ping -n 1"
@@ -862,6 +909,7 @@ def script_colors(color_type, text):
         return text
     return  text
 
+
 def banner_welcome():
     banner = '''
 		███████╗ █████╗ ███╗   ███╗ ██████╗ █████╗ ███╗   ██╗███╗   ██╗███████╗██████╗ 
@@ -892,7 +940,7 @@ def escanear(direccion, puertos):
     if not check_host_online(host):
         print script_colors("red","[-] ") + script_colors("c", "este host no esta en linea :(")
         exit(1)
-    print script_colors("g", "[+] ") + script_colors("c", "Iniciando escaner para: " + direccion)
+    print script_colors("g", "[+] ") + script_colors("c", "Iniciando escaner para: ") + script_colors("red",host) + script_colors("red"," domain: ") + dominio + script_colors("red"," OS: ") + sistema_operativo + script_colors("red"," server: ") + servidor
     print script_colors("yellow", "PUERTO.                 ESTADO.                         SERVICIO")
 
     for puerto in puertos:
@@ -964,13 +1012,12 @@ def scan_range(port):
         sock.close()
 
     except socket.gaierror:
-        print "Hostname could not be resolved"
+        print script_colors("red","host imposible de resolver")
         sys.exit()
 
     except socket.error:
-        print "Could not connect to server"
+        print script_colors("red","imposible conectar al host remoto")
         sys.exit()
-
 
 def main():
     print banner_welcome()
@@ -983,6 +1030,7 @@ def main():
     listaPuertos = str(args.puertos).split(",")
     range_port = str(args.range_ports).split("-")
 
+    enum_os(host)
     if args.host and args.puertos:
     	escanear(host,listaPuertos)
     elif args.host and args.range_ports:
@@ -992,7 +1040,7 @@ def main():
 
     	global ip_host 	
     	ip_host = host
-    	print script_colors("g", "[+] ") + script_colors("c", "Iniciando escaner para: " + host)
+    	print script_colors("g", "[+] ") + script_colors("c", "Iniciando escaner para: ") + script_colors("red",host) + script_colors("red"," domain: ") + dominio + script_colors("red"," OS: ") + sistema_operativo + script_colors("red"," server: ") + servidor
     	print script_colors("yellow", "PUERTO.                 ESTADO.                         SERVICIO")
     	p = Pool(50)
     	tiempo_inicial = time()
@@ -1000,6 +1048,7 @@ def main():
     	tiempo_final = time()
     	tiempo_ejecucion = tiempo_final - tiempo_inicial
     	print script_colors("lgray","Escaneo realizado en: ") + script_colors("c", str(int(tiempo_ejecucion))) + script_colors("lgray"," Segundos")
+
     else:
         print script_colors("yellow","[-] ") + script_colors("c", "Requiere parametros --host host --port puerto/s o --range ")
         exit(0)

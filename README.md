@@ -2,6 +2,8 @@
 
 SAMCANNER es un escaner de puertos TCP facil de utilizar basado en conexion por socket, programado en multihilos y multiprocessing para agilizar un poco la velocidad de estado de los puertos.
 
+En sistemas windows te permite concoer el nombre del equipo el sistema operativo y el servidor que correo dicho sistema
+
 
 Ejemplo de uso con rango de puertos
 ```

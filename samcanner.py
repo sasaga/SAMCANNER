@@ -6,7 +6,8 @@ import socket
 import sys
 import platform
 import os
-from time import time
+from time import time, strftime
+from datetime import datetime
 from multiprocessing.pool import Pool
 from commands import getoutput
 
@@ -838,27 +839,6 @@ common_ports = {
 
 service = ""
 
-def enum_os(target):
-	global dominio
-	global sistema_operativo
-	global servidor
-	#Uses null session as opposed to username and password
-	cmd = "smbclient //%s/IPC$ -U %s%%%s -t 1 -c exit" % (target, '', '')
-	for line in getoutput(cmd).splitlines():
-		if "Domain=" in line:
-			result = line.split('] ')
-			dominio = script_colors("c",result[0] +"]")
-			sistema_operativo = script_colors("c",result[1] +"]")
-			servidor = script_colors("c",result[2])
-		elif "NT_STATUS_LOGON_FAILURE" in line:
-			print script_colors("red","Authentication Failed")
-		else:
-			dominio = script_colors("c","Not found")
-			sistema_operativo = script_colors("c","Not found")
-			servidor = script_colors("c","Not found")
-
-
-
 def check_host_online(direccion):
     if (platform.system()=="Windows"):
         ping = "ping -n 1"
@@ -918,18 +898,16 @@ def banner_welcome():
 		╚════██║██╔══██║██║╚██╔╝██║██║     ██╔══██║██║╚██╗██║██║╚██╗██║██╔══╝  ██╔══██╗
 		███████║██║  ██║██║ ╚═╝ ██║╚██████╗██║  ██║██║ ╚████║██║ ╚████║███████╗██║  ██║
 		╚══════╝╚═╝  ╚═╝╚═╝     ╚═╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝  ╚═══╝╚══════╝╚═╝  ╚═╝
-		                                                                version: 1.5
-		                                                Autor: Samir Sanchez Garnica
-		                                                                   @sasaga92
+		                                                                   version: 1.5
+		                                                   Autor: Samir Sanchez Garnica
+		                                                                      @sasaga92
                                                                      
     '''
     return script_colors('lgray',banner)
 
 
+def escanear(direccion, puertos, opcion):
 
-
-
-def escanear_banner(direccion, puertos):
     from socket import *
     tiempo_inicial = time()
     informacion = []
@@ -942,9 +920,6 @@ def escanear_banner(direccion, puertos):
     if not check_host_online(host):
         print script_colors("red","[-] ") + script_colors("c", "este host no esta en linea :(")
         exit(1)
-    print script_colors("g", "[+] ") + script_colors("c", "Iniciando escaner para: ") + script_colors("red",host) + script_colors("red"," domain: ") + dominio + script_colors("red"," OS: ") + sistema_operativo + script_colors("red"," server: ") + servidor
-    print script_colors("yellow", "PUERTO.                 ESTADO.                         SERVICIO")
-
     for puerto in puertos:
 
         try:
@@ -954,74 +929,21 @@ def escanear_banner(direccion, puertos):
             except:
                 print script_colors("red","[-] ") + script_colors("c", "algo salio mal con algun puerto")
                 return
+            
             conexion.connect((host,p))
-            service = conexion.recv(1024)
 
-            conexion.close()
-            informacion.append([puerto, "abierto",str(service).rstrip('\n')])
-        except:
-        	conexion.close()
-        	informacion.append([puerto, "cerrado",service])
+            if opcion == "not_banner":
 
-    for i in informacion:
-        if i[2] == "":
-            i[2] = script_colors("red","no encontrado")
-        x=int((30-len(i[0]))/8)
-        print script_colors("blue","%s"%i[0]),
-        for y in range(x):
-            print "\t",
-        if i[1] == "cerrado":
-            i[1] = script_colors("red","cerrado")
-            i[2] = script_colors("red","no existe")
-        else:
-            i[1] = script_colors("g","abierto")
-        print i[1],
-        for y in range(x):
-            print "\t",
-        print i[2]
-
-    tiempo_final = time()
-    tiempo_ejecucion = tiempo_final - tiempo_inicial
-    print script_colors("lgray","Escaneo realizado en: ") + script_colors("c", str(int(tiempo_ejecucion))) + script_colors("lgray"," Segundos")
-
-
-
-
-def escanear(direccion, puertos):
-    from socket import *
-    tiempo_inicial = time()
-    informacion = []
-    service =""
-    try:
-        host = gethostbyname(direccion)
-    except:
-        print script_colors("red","[-] ") + script_colors("c", "no se reconoce el host")
-        exit(1)
-    if not check_host_online(host):
-        print script_colors("red","[-] ") + script_colors("c", "este host no esta en linea :(")
-        exit(1)
-    print script_colors("g", "[+] ") + script_colors("c", "Iniciando escaner para: ") + script_colors("red",host) + script_colors("red"," domain: ") + dominio + script_colors("red"," OS: ") + sistema_operativo + script_colors("red"," server: ") + servidor
-    print script_colors("yellow", "PUERTO.                 ESTADO.                         SERVICIO")
-
-    for puerto in puertos:
-
-        try:
-            conexion  = socket(AF_INET, SOCK_STREAM)
-            try:
-                p = int(puerto)
-            except:
-                print script_colors("red","[-] ") + script_colors("c", "algo salio mal con algun puerto")
-                return
-            conexion.connect((host,p))
-            #service = conexion.recv(1024)
-
-            if int(puerto) in common_ports:
-            	service = common_ports[int(puerto)]
+            	if int(puerto) in common_ports:
+            		service = common_ports[int(puerto)]
+            	else:
+            		service = ""
+            	informacion.append([puerto, "abierto",service])
             else:
-            	service = ""
-
+				service = conexion.recv(1024)
+				conexion.close()
+				informacion.append([puerto, "abierto",str(service).rstrip('\n')])     	
             conexion.close()
-            informacion.append([puerto, "abierto",service])
         except:
         	conexion.close()
         	informacion.append([puerto, "cerrado",service])
@@ -1046,7 +968,6 @@ def escanear(direccion, puertos):
     tiempo_final = time()
     tiempo_ejecucion = tiempo_final - tiempo_inicial
     print script_colors("lgray","Escaneo realizado en: ") + script_colors("c", str(int(tiempo_ejecucion))) + script_colors("lgray"," Segundos")
-
 
 
 def scan_range_banner(port):
@@ -1124,21 +1045,23 @@ def main():
     listaPuertos = str(args.puertos).split(",")
     range_port = str(args.range_ports).split("-")
 
-    enum_os(host)
     global ip_host 	
     ip_host = host
+    now = datetime.now() 
+    time_actual =  " Time Local: ",now.strftime('%H:%M:%S %Y/%m/%d')
+
+    print script_colors("g", "[+] ") + script_colors("c", "Iniciando escaner para: ") + script_colors("red",host)  + script_colors("c",time_actual[0]) + script_colors("red",time_actual[1])
+    print script_colors("yellow", "PUERTO.                 ESTADO.                         SERVICIO")
 
     if args.host and args.puertos and args.banner:
-    	escanear_banner(host,listaPuertos)
+		escanear(host,listaPuertos,"banner")
     elif args.host and args.puertos:
-    	escanear(host,listaPuertos)
+		escanear(host,listaPuertos, "not_banner")
     elif args.host and args.range_ports and args.banner:
     	if not check_host_online(host):
     		print script_colors("red","[-] ") + script_colors("c", "este host no esta en linea :(")
     		exit(1)   
     	ip_host = host
-    	print script_colors("g", "[+] ") + script_colors("c", "Iniciando escaner para: ") + script_colors("red",host) + script_colors("red"," domain: ") + dominio + script_colors("red"," OS: ") + sistema_operativo + script_colors("red"," server: ") + servidor
-    	print script_colors("yellow", "PUERTO.                 ESTADO.                         SERVICIO")
     	p = Pool(50)
     	tiempo_inicial = time()
     	salida = p.map(scan_range_banner, range(int(range_port[0]), int(range_port[1])))
@@ -1149,8 +1072,6 @@ def main():
     	if not check_host_online(host):
     		print script_colors("red","[-] ") + script_colors("c", "este host no esta en linea :(")
     		exit(1)   
-    	print script_colors("g", "[+] ") + script_colors("c", "Iniciando escaner para: ") + script_colors("red",host) + script_colors("red"," domain: ") + dominio + script_colors("red"," OS: ") + sistema_operativo + script_colors("red"," server: ") + servidor
-    	print script_colors("yellow", "PUERTO.                 ESTADO.                         SERVICIO")
     	p = Pool(50)
     	tiempo_inicial = time()
     	salida = p.map(scan_range, range(int(range_port[0]), int(range_port[1])))
